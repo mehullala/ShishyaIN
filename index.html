@@ -43,57 +43,78 @@
   -->
   <script src="flutter_bootstrap.js" async></script>
   <script>
-  let deferredPrompt;
+  (function(){
+    let deferredPrompt;
 
-  // Android / Desktop Chrome
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
+    function isAppInstalled(){
+      return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true
+        || window.matchMedia('(display-mode: fullscreen)').matches;
+    }
 
-    showInstallButton();
-  });
+    function createInstallButton(){
+      const existing = document.getElementById('install-button');
+      if (existing) return existing;
+      const button = document.createElement('button');
+      button.id = 'install-button';
+      button.innerText = 'Install App';
+      Object.assign(button.style, {
+        position: 'fixed',
+        bottom: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '12px 24px',
+        background: '#000',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '8px',
+        zIndex: '9999'
+      });
+      document.body.appendChild(button);
+      return button;
+    }
 
-  function showInstallButton() {
-    const button = document.createElement('button');
-    button.innerText = "Install App";
-    button.style.position = "fixed";
-    button.style.bottom = "20px";
-    button.style.left = "50%";
-    button.style.transform = "translateX(-50%)";
-    button.style.padding = "12px 24px";
-    button.style.background = "#000";
-    button.style.color = "#fff";
-    button.style.border = "none";
-    button.style.borderRadius = "8px";
-    button.style.zIndex = "9999";
-
-    document.body.appendChild(button);
-
-    button.addEventListener("click", async () => {
-      if (deferredPrompt) {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (isAppInstalled()) return;
+      const btn = createInstallButton();
+      btn.style.display = 'inline-block';
+      btn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
         deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        const choice = await deferredPrompt.userChoice;
         deferredPrompt = null;
-        button.remove();
-      } else {
-        alert("On iPhone: Tap Share → Add to Home Screen");
+        if (choice && choice.outcome === 'accepted') {
+          btn.style.display = 'none';
+        }
+      }, { once: true });
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      const btn = document.getElementById('install-button');
+      if (btn) btn.style.display = 'none';
+    });
+
+    function isIos(){
+      return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (isAppInstalled()) {
+        const btn = document.getElementById('install-button');
+        if (btn) btn.style.display = 'none';
+        return;
+      }
+      if (isIos()) {
+        const btn = createInstallButton();
+        btn.addEventListener('click', () => {
+          alert('To install on iOS: tap Share, then "Add to Home Screen"');
+        });
       }
     });
-  }
-
-  // iOS detection
-  function isIos() {
-    return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  }
-
-  function isInStandaloneMode() {
-    return ('standalone' in window.navigator) && window.navigator.standalone;
-  }
-
-  if (isIos() && !isInStandaloneMode()) {
-    showInstallButton();
-  }
-</script>
-
+  })();
+  </script>
 </body>
 </html>
