@@ -26,11 +26,36 @@
   <meta name="apple-mobile-web-app-title" content="shishya_ai">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
+
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>shishya_ai</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+  (function() {
+    function setPlaysInline(el) {
+      try {
+        el.setAttribute('playsinline', '');
+        el.setAttribute('webkit-playsinline', '');
+      } catch (e) {}
+    }
+
+    // Fix existing videos
+    document.querySelectorAll('video').forEach(setPlaysInline);
+
+    // Observe and fix dynamically added videos (used by video_player web builds)
+    new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        m.addedNodes.forEach(function(node) {
+          if (!node) return;
+          if (node.tagName === 'VIDEO') setPlaysInline(node);
+          else if (node.querySelectorAll) node.querySelectorAll('video').forEach(setPlaysInline);
+        });
+      });
+    }).observe(document.documentElement || document.body, { childList: true, subtree: true });
+  })();
+</script>
 </head>
 <body>
   <!--
