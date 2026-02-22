@@ -1,11 +1,11 @@
 {
-    "name": "shishya_ai",
-    "short_name": "shishya_ai",
+    "name": "Shishya AI",
+    "short_name": "Shishya AI",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Shishya AI",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
