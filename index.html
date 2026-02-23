@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="/ShishyaIN/">
 
   <meta charset="UTF-8">
@@ -23,49 +10,21 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="shishya_ai">
+  <meta name="apple-mobile-web-app-title" content="Shishya AI">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
+  
+  <!-- iOS Video Playback Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>shishya_ai</title>
   <link rel="manifest" href="manifest.json">
-  <script>
-  (function() {
-    function setPlaysInline(el) {
-      try {
-        el.setAttribute('playsinline', '');
-        el.setAttribute('webkit-playsinline', '');
-      } catch (e) {}
-    }
-
-    // Fix existing videos
-    document.querySelectorAll('video').forEach(setPlaysInline);
-
-    // Observe and fix dynamically added videos (used by video_player web builds)
-    new MutationObserver(function(mutations) {
-      mutations.forEach(function(m) {
-        m.addedNodes.forEach(function(node) {
-          if (!node) return;
-          if (node.tagName === 'VIDEO') setPlaysInline(node);
-          else if (node.querySelectorAll) node.querySelectorAll('video').forEach(setPlaysInline);
-        });
-      });
-    }).observe(document.documentElement || document.body, { childList: true, subtree: true });
-  })();
-</script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
   <script>
   (function(){
@@ -125,6 +84,57 @@
     function isIos(){
       return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     }
+
+    // Fix video playback on iOS Safari
+    function fixIOSVideoPlayback() {
+      if (!isIos()) return;
+      
+      // Observe for dynamically added video elements
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                const videos = node.querySelectorAll ? node.querySelectorAll('video') : [];
+                videos.forEach(function(video) {
+                  if (!video.hasAttribute('crossorigin')) {
+                    video.setAttribute('crossorigin', 'anonymous');
+                  }
+                  if (!video.hasAttribute('playsinline')) {
+                    video.setAttribute('playsinline', '');
+                  }
+                  if (!video.hasAttribute('webkit-playsinline')) {
+                    video.setAttribute('webkit-playsinline', '');
+                  }
+                });
+              }
+            });
+          }
+        });
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      // Also handle existing video elements on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('video').forEach(function(video) {
+          if (!video.hasAttribute('crossorigin')) {
+            video.setAttribute('crossorigin', 'anonymous');
+          }
+          if (!video.hasAttribute('playsinline')) {
+            video.setAttribute('playsinline', '');
+          }
+          if (!video.hasAttribute('webkit-playsinline')) {
+            video.setAttribute('webkit-playsinline', '');
+          }
+        });
+      });
+    }
+
+    fixIOSVideoPlayback();
 
     document.addEventListener('DOMContentLoaded', () => {
       if (isAppInstalled()) {
